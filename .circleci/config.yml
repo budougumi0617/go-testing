@@ -1,0 +1,27 @@
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version
+      - image: circleci/golang:latest
+
+    environment:
+      TEST_RESULTS: /tmp/test-results
+
+    working_directory: /go/src/github.com/budougumi0617/go-testing
+    steps:
+      - checkout
+      - run: mkdir -p $TEST_RESULTS
+      - run: go get github.com/jstemmer/go-junit-report
+
+      # specify any bash command here prefixed with `run: `
+      - run:
+          name: Run unit tests
+          environment:
+            CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
+            CONTACTS_DB_MIGRATIONS: /go/src/github.com/CircleCI-Public/circleci-demo-go/db/migrations
+          command: |
+            trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
+            go test -v -coverprofile=coverage.txt -covermode=count ./...| tee ${TEST_RESULTS}/go-test.out
+            bash <(curl -s https://codecov.io/bash)
