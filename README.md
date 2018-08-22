@@ -6,3 +6,5 @@
 Study Go testing package.
 
 https://golang.org/pkg/testing/
+
+https://speakerdeck.com/budougumi0617/tour-of-testing-in-2018
