@@ -7,4 +7,8 @@ Study Go testing package.
 
 https://golang.org/pkg/testing/
 
+Related the presentation is below:  
 https://speakerdeck.com/budougumi0617/tour-of-testing-in-2018
+
+And, the related document is below:  
+https://budougumi0617.github.io/2018/08/19/go-testing2018/
