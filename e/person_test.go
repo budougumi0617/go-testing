@@ -2,6 +2,7 @@ package e_test
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/budougumi0617/go-testing/e"
 )
@@ -69,4 +70,11 @@ func ExamplePerson_String_bob() {
 
 	// Output:
 	// name Bob, age 10
+}
+
+func TestPerson(t *testing.T) {
+	p := &e.Person{Name: "Bob", Age: 10}
+	if p.Name != "Bob" {
+		t.Fatalf("want = \"Bob\", got = %+v\n", p.Name)
+	}
 }
