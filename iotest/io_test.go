@@ -10,8 +10,9 @@ import (
 func TestDataErrReader(t *testing.T) {
 	orign := []byte("Hello\nbyte.Reader\n")
 	type want struct {
-		n   int
-		buf string
+		n         int
+		buf       string
+		wantError error
 	}
 	tests := []struct {
 		subject string
@@ -24,10 +25,10 @@ func TestDataErrReader(t *testing.T) {
 			iotest.DataErrReader(bytes.NewReader(orign)),
 			5,
 			[]want{
-				{5, "Hello"},
-				{5, "\nbyte"},
-				{5, ".Read"},
-				{3, "er\n\x00\x00"}, // return with io.EOF
+				{5, "Hello", nil},
+				{5, "\nbyte", nil},
+				{5, ".Read", nil},
+				{3, "er\n\x00\x00", io.EOF}, // return with io.EOF
 			},
 		},
 		{
@@ -35,18 +36,18 @@ func TestDataErrReader(t *testing.T) {
 			bytes.NewReader(orign),
 			5,
 			[]want{
-				{5, "Hello"},
-				{5, "\nbyte"},
-				{5, ".Read"},
-				{3, "er\n\x00\x00"},
-				{0, "\x00\x00\x00\x00\x00"}, // return with io.EOF
+				{5, "Hello", nil},
+				{5, "\nbyte", nil},
+				{5, ".Read", nil},
+				{3, "er\n\x00\x00", nil},
+				{0, "\x00\x00\x00\x00\x00", io.EOF}, // return with io.EOF
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.subject, func(t *testing.T) {
-			for i, want := range tt.wants {
+			for _, want := range tt.wants {
 				buf := make([]byte, tt.size)
 				size, err := tt.r.Read(buf)
 				if size != want.n {
@@ -55,7 +56,7 @@ func TestDataErrReader(t *testing.T) {
 				if string(buf) != want.buf {
 					t.Fatalf("want %#v, but got = %#v\n", want.buf, string(buf))
 				}
-				if i == len(tt.wants)-1 && err != io.EOF {
+				if err != want.wantError {
 					t.Fatalf("want io.EOF, but got = %#v\n", err)
 				}
 			}
