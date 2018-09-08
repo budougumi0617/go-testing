@@ -85,6 +85,15 @@ func TestIoTest(t *testing.T) {
 				{0, "\x00\x00\x00\x00\x00", io.EOF},
 			},
 		},
+		{
+			"TimeoutReader",
+			iotest.TimeoutReader(bytes.NewReader(orign)),
+			5,
+			[]want{
+				{5, "Hello", nil},
+				{0, "\x00\x00\x00\x00\x00", iotest.ErrTimeout}, // ErrTimeout on the second read with no data.
+			},
+		},
 	}
 
 	for _, tt := range tests {
