@@ -7,7 +7,7 @@ import (
 	"testing/iotest"
 )
 
-func TestDataErrReader(t *testing.T) {
+func TestIoTest(t *testing.T) {
 	orign := []byte("Hello\nbyte.Reader\n")
 	type want struct {
 		n         int
@@ -21,6 +21,18 @@ func TestDataErrReader(t *testing.T) {
 		wants   []want
 	}{
 		{
+			"Normal Reader",
+			bytes.NewReader(orign),
+			5,
+			[]want{
+				{5, "Hello", nil},
+				{5, "\nbyte", nil},
+				{5, ".Read", nil},
+				{3, "er\n\x00\x00", nil},
+				{0, "\x00\x00\x00\x00\x00", io.EOF}, // return with io.EOF
+			},
+		},
+		{
 			"DataErrReader",
 			iotest.DataErrReader(bytes.NewReader(orign)),
 			5,
@@ -32,15 +44,45 @@ func TestDataErrReader(t *testing.T) {
 			},
 		},
 		{
-			"Normal Reader",
-			bytes.NewReader(orign),
+			"HalfReader",
+			iotest.HalfReader(bytes.NewReader(orign)),
 			5,
 			[]want{
-				{5, "Hello", nil},
-				{5, "\nbyte", nil},
-				{5, ".Read", nil},
+				// len(5)のbufferでReadしても、半分の3バイトしか読み込んでくれない
+				{3, "Hel\x00\x00", nil},
+				{3, "lo\n\x00\x00", nil},
+				{3, "byt\x00\x00", nil},
+				{3, "e.R\x00\x00", nil},
+				{3, "ead\x00\x00", nil},
 				{3, "er\n\x00\x00", nil},
-				{0, "\x00\x00\x00\x00\x00", io.EOF}, // return with io.EOF
+				{0, "\x00\x00\x00\x00\x00", io.EOF},
+			},
+		},
+		{
+			"OneByteReader",
+			iotest.OneByteReader(bytes.NewReader(orign)),
+			5,
+			[]want{
+				// 1バイトしか読み込まない
+				{1, "H\x00\x00\x00\x00", nil},
+				{1, "e\x00\x00\x00\x00", nil},
+				{1, "l\x00\x00\x00\x00", nil},
+				{1, "l\x00\x00\x00\x00", nil},
+				{1, "o\x00\x00\x00\x00", nil},
+				{1, "\n\x00\x00\x00\x00", nil},
+				{1, "b\x00\x00\x00\x00", nil},
+				{1, "y\x00\x00\x00\x00", nil},
+				{1, "t\x00\x00\x00\x00", nil},
+				{1, "e\x00\x00\x00\x00", nil},
+				{1, ".\x00\x00\x00\x00", nil},
+				{1, "R\x00\x00\x00\x00", nil},
+				{1, "e\x00\x00\x00\x00", nil},
+				{1, "a\x00\x00\x00\x00", nil},
+				{1, "d\x00\x00\x00\x00", nil},
+				{1, "e\x00\x00\x00\x00", nil},
+				{1, "r\x00\x00\x00\x00", nil},
+				{1, "\n\x00\x00\x00\x00", nil},
+				{0, "\x00\x00\x00\x00\x00", io.EOF},
 			},
 		},
 	}
