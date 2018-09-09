@@ -114,3 +114,24 @@ func TestIoTest(t *testing.T) {
 		})
 	}
 }
+
+func TestTruncateWriter(t *testing.T) {
+	orign := []byte("Hello\nbyte.Reader\n")
+	wants := []struct {
+		buf string
+		n   int
+	}{
+		{"Hel", 3},
+		{"Hello\nby", 8},
+	}
+
+	for _, want := range wants {
+		b := &bytes.Buffer{}
+		w := iotest.TruncateWriter(b, int64(want.n))
+		w.Write(orign)
+
+		if got := b.Bytes(); string(got) != want.buf {
+			t.Fatalf("want %#v, but got = %#v\n", want.buf, string(got))
+		}
+	}
+}
