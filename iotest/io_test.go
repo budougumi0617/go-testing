@@ -128,6 +128,7 @@ func TestTruncateWriter(t *testing.T) {
 	for _, want := range wants {
 		b := &bytes.Buffer{}
 		w := iotest.TruncateWriter(b, int64(want.n))
+		w = iotest.NewWriteLogger("Hook write", w)
 		w.Write(orign)
 
 		if got := b.Bytes(); string(got) != want.buf {
